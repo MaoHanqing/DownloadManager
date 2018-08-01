@@ -14,7 +14,7 @@ struct Model {
     var progress = 0.0
 }
 class ViewController: UITableViewController {
-    var dataSource = [Model(title: "音乐", URL: "http://sc1.111ttt.cn:8282/2017/1/11m/11/304112002347.m4a?#.mp3", progress: 0),Model(title: "视频", URL: "", progress: 0),Model(title: "文件", URL: "", progress: 0)]
+    var dataSource = [Model(title: "音乐", URL: "http://sc1.111ttt.cn:8282/2017/1/11m/11/304112002347.m4a?#.mp3", progress: 0),Model(title: "视频", URL: "https://www.apple.com/105/media/us/iphone-x/2017/01df5b43-28e4-4848-bf20-490c34a926a7/films/feature/iphone-x-feature-tpl-cc-us-20170912_1280x720h.mp4", progress: 0),Model(title: "文件", URL: "", progress: 0)]
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
@@ -23,7 +23,11 @@ class ViewController: UITableViewController {
         self.tableView.reloadData()
         self.tableView.tableFooterView = UIView()
     }
-
+    
+    @IBAction func cleanCache(_ sender: Any) {
+        DownloadCache.cleanDownloadFiles()
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -38,12 +42,15 @@ class ViewController: UITableViewController {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! TableViewCell
         let model = dataSource[indexPath.row]
         cell.name.text = model.title
-        cell.progress.text = String(format: "%.2f", model.progress * 100)
         return cell
     }
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
         let model = self.dataSource[indexPath.row]
-        DownloadManager.default.downloadResource(resourcePath: model.URL!, downloadCacheType: .audio) { (result) -> (Void) in
+        let cell = tableView.cellForRow(at: indexPath) as! TableViewCell
+        DownloadManager.default.downloadResource(resourcePath: model.URL!, progress: { (progress) in
+            cell.progress.text = String(format: "%.2f",progress.fractionCompleted * 100)
+        }) { (result) -> (Void) in
             switch result{
             case .success(let a):
                 print(a)
@@ -53,8 +60,6 @@ class ViewController: UITableViewController {
                 print(error,url)
             }
         }
-        
     }
-
 }
 

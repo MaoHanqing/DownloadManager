@@ -25,25 +25,34 @@ struct DownloadFileModel {
 //    var video: Video
 //    /// 配音资源
 //    var dubRes: DubRes?
-    
-  
+
 }
 class DownloadManager: NSObject {
+    typealias ProgressHandler = (Progress) -> Void
     static var `default` = DownloadManager()
-
+  
     var bolSuccessful: Bool = true
-    func downloadResource(resourcePath: String?,downloadCacheType:DirType = .video, completionHandler: @escaping (DownloadResult<URL>) -> (Void)) {
-        DownloadCache.dirType = downloadCacheType
+    func setCacheDir(cacheType:DirType?,url:String){
+
+        if let cacheType = cacheType{
+            DownloadCache.dirType = cacheType
+            return
+        }
+        DownloadCache.autoSetDirType(url: url)
+        
+    }
+    func downloadResource(resourcePath: String?,downloadCacheType:DirType? = nil,progress:ProgressHandler? = nil, completionHandler: @escaping (DownloadResult<URL>) -> (Void)) {
+        
         guard let path = resourcePath, !path.isEmpty else {
             completionHandler(DownloadResult.failure(self.getUrlEmptyError()))
             return
         }
-
+        setCacheDir(cacheType: downloadCacheType,url: path)
         if let localUrl = isFileExisted(url: path.url){
             print("播放本地文件")
             completionHandler(DownloadResult.success(localUrl))
         } else {
-            downloadFile(resourceUrl: path, destination: getCacheDestination(url: path.url), completionHandler: {(result) -> (Void) in
+            downloadFile(resourceUrl: path, destination: getCacheDestination(url: path.url),progress:progress, completionHandler: {(result) -> (Void) in
                 switch result{
                 case .success(let cacheUrl):
                 print("下载完成")
@@ -55,14 +64,18 @@ class DownloadManager: NSObject {
             })
         }
     }
-    func downloadFile(resourceUrl: String, destination: DownloadRequest.DownloadFileDestination?, completionHandler: @escaping (DownloadResult<String>) -> (Void)) {
-        Alamofire.download(resourceUrl, to: destination).validate(statusCode: 200..<400).response { (response) in
+    func downloadFile(resourceUrl: String, destination: DownloadRequest.DownloadFileDestination?,progress:ProgressHandler? = nil, completionHandler: @escaping (DownloadResult<String>) -> (Void)) {
+       let requestTask = Alamofire.download(resourceUrl, to: destination).validate(statusCode: 200..<400).response { (response) in
             if response.error == nil, let localPath = response.destinationURL?.path {
                 completionHandler(DownloadResult.success(localPath))
             } else {
                 completionHandler(DownloadResult.failureUrl(response.error!, response.destinationURL?.path))
             }
         }
+        guard  progress != nil  else {
+            return
+        }
+         requestTask.downloadProgress(closure: progress!)
     }
     func removeVideoResources(video: DownloadFileModel?) {
         guard let DownloadFileModel = video else { return }

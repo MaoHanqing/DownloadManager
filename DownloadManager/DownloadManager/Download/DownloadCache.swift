@@ -24,6 +24,19 @@ class DownloadCache {
             cachesDirectory = dirType.rawValue
         }
     }
+    static func autoSetDirType(url:String){
+        let audioSufix = ["mp3"]
+        let videoSufix = ["mp4"]
+        let sufix = url.split(separator: ".").last ?? ""
+        if audioSufix.contains(String(sufix)){
+            self.dirType = .audio
+            return
+        }
+        if videoSufix.contains(String(sufix)){
+            self.dirType = .video
+            return
+        }
+    }
     ///  In the sandbox cactes directory, custom your cache directory
     public static var cachesDirectory :String = dirType.rawValue{
         willSet

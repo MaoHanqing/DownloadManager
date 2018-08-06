@@ -2,7 +2,6 @@
 //  DownloadHelper.swift
 //  alo7-student
 //
-//  Created by ken.zhang on 2017/12/19.
 //  Copyright © 2017年 alo7. All rights reserved.
 //
 
@@ -10,7 +9,7 @@ import UIKit
 
 /// MARK:- url helper
 
-public let FileErrorDomain = "FileErrorDomain"
+let FileErrorDomain = "FileErrorDomain"
 
 // MARK:-  result help
 
@@ -20,7 +19,7 @@ public enum DownloadResult<T> {
     case failureUrl(Error, String?)
 }
 
-public enum FileError: Int {
+enum FileError: Int {
     
     case badURL = 9981
     case fileIsExist = 9982
@@ -31,14 +30,14 @@ public enum FileError: Int {
     
 }
 
-public protocol FileURL {
+protocol FileURL {
     
     func asURL() throws -> URL
 }
 
 extension String: FileURL {
     
-    public func asURL() throws -> URL {
+    func asURL() throws -> URL {
         guard let url = URL(string: self) else { throw    NSError(domain: FileErrorDomain, code: FileError.badURL.rawValue, userInfo: ["url":self]) }
         return url
     }
@@ -51,7 +50,7 @@ extension String: FileURL {
 }
 
 extension URL: FileURL {
-    public func asURL() throws -> URL {
+    func asURL() throws -> URL {
         
         return self
         
@@ -63,3 +62,4 @@ extension DispatchQueue {
     static let downloadQueue = DispatchQueue(label: "DownloadFileQueue",attributes: .concurrent)
     
 }
+

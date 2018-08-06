@@ -2,46 +2,18 @@
 //  DownloadCache.swift
 //  alo7-student
 //
-//  Created by ken.zhang on 2017/12/19.
 //  Copyright © 2017年 alo7. All rights reserved.
 //
 
 import Foundation
 
-let directory = "Video"
-let workDirectory = "Work"
-let Audiodirectory = "Audio"
-
-public enum DirType: String {
-    case video = "Video"
-    case work = "Work"
-    case audio = "Audio"
-}
-
 class DownloadCache {
-    static var dirType: DirType = .video {
-        didSet {
-            cachesDirectory = dirType.rawValue
-        }
-    }
-    static func autoSetDirType(url:String){
-        let audioSufix = ["mp3"]
-        let videoSufix = ["mp4"]
-        let sufix = url.split(separator: ".").last ?? ""
-        if audioSufix.contains(String(sufix)){
-            self.dirType = .audio
-            return
-        }
-        if videoSufix.contains(String(sufix)){
-            self.dirType = .video
-            return
-        }
-    }
+    
     ///  In the sandbox cactes directory, custom your cache directory
-    public static var cachesDirectory :String = dirType.rawValue{
+    static var cachesDirectory :String = "default"{
         willSet
         {
-            createDirectory(atPath: newValue.cacheDir)
+            createDirectory(atPath: cachesDirectory)
         }
     }
     
@@ -73,7 +45,7 @@ class DownloadCache {
     
     
     /// The size of the downloaded files
-    public static func downloadedFilesSize() -> Int64{
+    static func downloadedFilesSize() -> Int64{
         
         if !isFileExist(atPath: cachesDirectory.cacheDir) {
             return 0
@@ -97,7 +69,7 @@ class DownloadCache {
         
         
     }
-    /// delete all downloaded files
+    ///  delete all  temp files
     public static func cleanDownloadTempFiles(){
         
         do {
@@ -112,7 +84,7 @@ class DownloadCache {
         }
         
     }
-    /// delete all  temp files
+    ///  delete all downloaded files
     public static func cleanDownloadFiles(){
         
         removeItem(atPath: cachesDirectory.cacheDir)
@@ -121,7 +93,7 @@ class DownloadCache {
     }
     
     /// paths to the downloaded files
-    public static func pathsOfDownloadedfiles() -> [String]{
+    static func pathsOfDownloadedfiles() -> [String]{
         
         var paths = [String]()
         do {
@@ -144,13 +116,13 @@ class DownloadCache {
 extension DownloadCache {
     
     /// isFileExist
-    public static func isFileExist(atPath filePath : String ) -> Bool {
+    static func isFileExist(atPath filePath : String ) -> Bool {
         
         return FileManager.default.fileExists(atPath: filePath)
     }
     
     /// fileSize
-    public static func fileSize(filePath : String ) -> Int64 {
+    static func fileSize(filePath : String ) -> Int64 {
         
         guard isFileExist(atPath: filePath) else { return 0 }
         let fileInfo =   try! FileManager.default.attributesOfItem(atPath: filePath)
@@ -159,7 +131,7 @@ extension DownloadCache {
     }
     
     /// move file
-    public static func moveItem(atPath: String, toPath: String) {
+    static func moveItem(atPath: String, toPath: String) {
         
         do {
             try  FileManager.default.moveItem(atPath: atPath, toPath: toPath)
@@ -169,7 +141,7 @@ extension DownloadCache {
     }
     
     /// delete file
-    public static func removeItem(atPath: String) {
+    static func removeItem(atPath: String) {
         
         guard isFileExist(atPath: atPath) else {
             return
@@ -183,7 +155,7 @@ extension DownloadCache {
     }
     
     /// createDirectory
-    public static func createDirectory(atPath:String) {
+    static func createDirectory(atPath:String) {
         
         if !isFileExist(atPath: atPath)  {
             do {
@@ -197,7 +169,7 @@ extension DownloadCache {
     
     /// systemFreeSize
     
-    public static func systemFreeSize() -> Int64{
+    static func systemFreeSize() -> Int64{
         
         do {
             let attributes =  try FileManager.default.attributesOfFileSystem(forPath:  NSHomeDirectory())
@@ -217,28 +189,26 @@ extension DownloadCache {
 
 extension String{
     
-    public var md5 : String {
+    var md5 : String {
         return self.kf.md5
     }
     func debug(){
         print("\(self)")
     }
-    public var length:Int{
-        return characters.count
-    }
-    public var cacheDir:String {
+    var cacheDir:String {
         let path = NSSearchPathForDirectoriesInDomains(.cachesDirectory, .userDomainMask, true).last!
         return (path as NSString).appendingPathComponent((self as NSString).lastPathComponent)
     }
     
-    public var docDir:String {
+    var docDir:String {
         let path = NSSearchPathForDirectoriesInDomains(.documentDirectory,.userDomainMask, true).last!
         return (path as NSString).appendingPathComponent((self as NSString).lastPathComponent)
     }
-    public var tmpDir:String {
+    var tmpDir:String {
         
         let path = NSTemporaryDirectory() as NSString
         return path.appendingPathComponent((self as NSString).lastPathComponent)
         
     }
 }
+

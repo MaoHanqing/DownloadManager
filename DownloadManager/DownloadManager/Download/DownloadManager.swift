@@ -16,7 +16,7 @@ public class DownloadManager: NSObject {
     public static var `default` = DownloadManager()
     
     var downloadedURLs = [URL]()
-    public func downloadResource(urls:[String],cacheDirectoryName:String? = nil,progress:ProgressHandler? = nil, completionHandler: @escaping (DownloadResult<[URL]>) -> (Void)){
+    public func syncDownloadResources(urls:[String],cacheDirectoryName:String? = nil,progress:ProgressHandler? = nil, completionHandler: @escaping (DownloadResult<[URL]>) -> (Void)){
         let dispatchGroup = DispatchGroup()
         for url in urls{
             dispatchGroup.enter()

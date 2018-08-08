@@ -1,7 +1,5 @@
 //
 //  DownloadManager.swift
-//  alo7-student
-//
 //  Copyright © 2017年 alo7. All rights reserved.
 //
 
@@ -15,15 +13,15 @@ public class DownloadManager: NSObject {
     
     public static var `default` = DownloadManager()
     
-    var downloadedURLs = [URL]()
-    public func syncDownloadResources(urls:[String],cacheDirectoryName:String? = nil,progress:ProgressHandler? = nil, completionHandler: @escaping (DownloadResult<[URL]>) -> (Void)){
+    var downloadedURLs = [String:URL]()
+    public func syncDownloadResources(urls:[String?],cacheDirectoryName:String? = nil,progress:ProgressHandler? = nil, completionHandler: @escaping (DownloadResult<[String:URL]>) -> (Void)){
         let dispatchGroup = DispatchGroup()
         for url in urls{
             dispatchGroup.enter()
             self.downloadResource(resourcePath: url, completionHandler: { (result) -> (Void) in
                 switch result{
                 case .success(let resourceURL):
-                    self.downloadedURLs.append(resourceURL)
+                    self.downloadedURLs[url!] = resourceURL
                     
                 case .failure(let error): completionHandler(DownloadResult.failure(error))
                 case .failureUrl(let error, let path):

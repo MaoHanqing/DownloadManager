@@ -1,7 +1,5 @@
 //
 //  DownloadHelper.swift
-//  alo7-student
-//
 //  Copyright © 2017年 alo7. All rights reserved.
 //
 

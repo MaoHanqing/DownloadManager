@@ -1,13 +1,11 @@
 //
 //  DownloadCache.swift
-//  alo7-student
-//
 //  Copyright © 2017年 alo7. All rights reserved.
 //
 
 import Foundation
 
-class DownloadCache {
+public class DownloadCache {
     
     ///  In the sandbox cactes directory, custom your cache directory
     static var cachesDirectory :String = "default"{
@@ -114,7 +112,9 @@ class DownloadCache {
 
 // MARK: - fileHelper
 extension DownloadCache {
-    
+    public static func isFileExist(url:URL)->Bool{
+        return self.isFileExist(atPath:DownloadCache.cachePath(url:url))
+    }
     /// isFileExist
     static func isFileExist(atPath filePath : String ) -> Bool {
         
@@ -141,7 +141,7 @@ extension DownloadCache {
     }
     
     /// delete file
-    static func removeItem(atPath: String) {
+    public static func removeItem(atPath: String) {
         
         guard isFileExist(atPath: atPath) else {
             return

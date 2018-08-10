@@ -15,6 +15,7 @@ struct DownloadResource {
     var url:String
     var requestTask:DownloadRequest?
 }
+// 找到合适的方法来表明下载和非下载状态 方便UI层调用下载与否
 public class DownloadManager: NSObject {
     public typealias ProgressHandler = (String,Progress) -> Void
     

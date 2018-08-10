@@ -1,6 +1,5 @@
 //
 //  DownloadHelper.swift
-//  Copyright © 2017年 alo7. All rights reserved.
 //
 
 import UIKit

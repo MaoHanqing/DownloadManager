@@ -1,6 +1,5 @@
 //
 //  DownloadCache.swift
-//  Copyright © 2017年 alo7. All rights reserved.
 //
 
 import Foundation
@@ -182,6 +181,10 @@ extension DownloadCache {
             return 0
             
         }
+    }
+    static func getDownloadedData(url:URL)->Data?{
+        return FileManager.default.contents(atPath: DownloadCache.cachePath(url:url))
+        
     }
 }
 

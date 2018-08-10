@@ -40,6 +40,7 @@
                 <outlet property="name" destination="nQ1-jL-ab9" id="JWz-UM-bDj"/>
                 <outlet property="progress" destination="NKx-dr-lE0" id="CW3-AI-u52"/>
             </connections>
+            <point key="canvasLocation" x="129" y="23"/>
         </tableViewCell>
     </objects>
 </document>

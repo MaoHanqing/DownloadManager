@@ -23,10 +23,8 @@ public class DownloadManager: NSObject {
     public var maxCacheSize = 100 //MB
     
     public static var `default` = DownloadManager()
-//    private var downloadingURLS = [String:DownloadRequest]()
-//    private var downloadCancleURLS = [String:DownloadRequest]()
     private var downloadResources  = [String:DownloadResource]()
-    var syncdownloadingURLs = [String:URL]()
+    private var syncdownloadingURLs = [String:URL]()
     public static func resourceDownloadStatus(url:String)->DownloadResourceStatus{
         if let resource = self.default.downloadResources[url]{
             return resource.status

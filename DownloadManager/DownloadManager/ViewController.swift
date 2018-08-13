@@ -75,10 +75,6 @@ class ViewController: UITableViewController {
         
       
     }
-    override func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
-        let model = self.dataSource[indexPath.row]
-        let cell = tableView.cellForRow(at: indexPath) as! TableViewCell
-       
-    }
+
 }
 

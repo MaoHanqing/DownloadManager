@@ -52,7 +52,7 @@ class ViewController: UITableViewController {
         switch statues {
         case .downloading:
          DownloadManager.cancelDownload(model.URL.first!)
-        case .cancle,.unkonw:
+        case .cancle,.beginDownload:
             DownloadManager.default.downloadResource(resourcePath: model.URL.first, progress: { (_,progress) in
                 cell.progress.text = String(format: "%.2f",progress.fractionCompleted * 100)
             }) { (result) -> (Void) in
@@ -66,6 +66,10 @@ class ViewController: UITableViewController {
                 }
             }
         case .downloaded:
+            break
+        case .unknow:
+            break
+        case .failure:
             break
         }
         

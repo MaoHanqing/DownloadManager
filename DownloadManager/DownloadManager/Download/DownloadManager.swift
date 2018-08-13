@@ -7,45 +7,41 @@ public enum DownloadResourceStatus{
     case downloading
     case downloaded
     case cancle
-    case unkonw
+    case failure
+    case unknow
     case beginDownload
 }
-struct DownloadResource {
-    var status : DownloadResourceStatus = .beginDownload
+public struct DownloadResource {
+    var status : DownloadResourceStatus = .unknow
     var url:String
     var requestTask:DownloadRequest?
 }
 // 找到合适的方法来表明下载和非下载状态 方便UI层调用下载与否
 public class DownloadManager: NSObject {
-    public typealias ProgressHandler = (String,Progress) -> Void
+    public typealias ProgressHandler = (DownloadResource,Progress) -> Void
     
     public var maxCacheSize = 100 //MB
     
     public static var `default` = DownloadManager()
-    private var downloadingURLS = [String:DownloadRequest]()
-    private var downloadCancleURLS = [String:DownloadRequest]()
-    var downloadedURLs = [String:URL]()
+//    private var downloadingURLS = [String:DownloadRequest]()
+//    private var downloadCancleURLS = [String:DownloadRequest]()
+    private var downloadResources  = [String:DownloadResource]()
+    var syncdownloadingURLs = [String:URL]()
     public static func resourceDownloadStatus(url:String)->DownloadResourceStatus{
-        if self.default.downloadedURLs[url] != nil{
-            return .downloaded
+        if let resource = self.default.downloadResources[url]{
+            return resource.status
         }
-        if self.default.downloadingURLS[url] != nil{
-            return .downloading
-        }
-        if self.default.downloadCancleURLS[url] != nil{
-            return .cancle
-        }
-        return .unkonw
+        return .unknow
     }
     public func syncDownloadResources(urls:[String?],cacheDirectoryName:String? = nil,progress:ProgressHandler? = nil, completionHandler: @escaping (DownloadResult<[String:URL]>) -> (Void)){
-        self.downloadedURLs.removeAll()
+        self.syncdownloadingURLs.removeAll()
         let dispatchGroup = DispatchGroup()
         for url in urls{
             dispatchGroup.enter()
             self.downloadResource(resourcePath: url, completionHandler: { (result) -> (Void) in
                 switch result{
-                case .success(let _):
-                    break
+                case .success(let resourceURL):
+                    self.syncdownloadingURLs[url!] = resourceURL
                 case .failure(let error): completionHandler(DownloadResult.failure(error))
                 case .failureUrl(let error, let path):
                     completionHandler(DownloadResult.failureUrl(error, path))
@@ -55,19 +51,17 @@ public class DownloadManager: NSObject {
         }
         dispatchGroup.notify(queue: .downloadQueue) { [weak self] in
             
-            if self?.downloadedURLs.count != urls.count {
+            if self?.syncdownloadingURLs.count != urls.count {
                 return
             }
-            completionHandler(DownloadResult.success(self!.downloadedURLs))
+            completionHandler(DownloadResult.success(self!.syncdownloadingURLs))
         }
     }
     public static func cancelDownload(_ url:String){
-        guard let request = self.default.downloadingURLS[url] else {
-            return
+        if var resource = self.default.downloadResources[url] {
+            resource.status = .cancle
+            resource.requestTask?.cancel()
         }
-        request.cancel()
-        self.default.downloadingURLS.removeValue(forKey: url)
-        self.default.downloadCancleURLS[url] = request
     }
     public func resumeDownload(_ url:String?,progress:ProgressHandler? = nil, completionHandler: @escaping (DownloadResult<URL>) -> (Void)){
         guard let path = url, !path.isEmpty else {
@@ -99,14 +93,12 @@ public class DownloadManager: NSObject {
             completionHandler(DownloadResult.success(localUrl))
             return
         }
-        
+       
         downloadFile(resourceUrl: path, destination: getCacheDestination(url: path.url),progress:progress, completionHandler: {(result) -> (Void) in
             switch result{
             case .success(let cacheUrl):
                 print("下载完成")
-                self.downloadedURLs[path] = cacheUrl.url
-                self.downloadCancleURLS.removeValue(forKey: path)
-                self.downloadingURLS.removeValue(forKey: path)
+             
                 completionHandler(DownloadResult.success(cacheUrl.url))
             case .failureUrl(let err, let path):
                 completionHandler(DownloadResult.failureUrl(err, path))
@@ -126,31 +118,31 @@ public class DownloadManager: NSObject {
     }
     
     func downloadFile(resourceUrl: String, destination: DownloadRequest.DownloadFileDestination?,progress:ProgressHandler? = nil, completionHandler: @escaping (DownloadResult<String>) -> (Void)) {
-  
-        var downloadRequst : DownloadRequest? = nil
-        if let downloadRequest = self.downloadCancleURLS[resourceUrl],
-            let data = downloadRequest.resumeData {
-            downloadRequst = Alamofire.download(resumingWith: data, to: destination)
-            self.downloadCancleURLS.removeValue(forKey: resourceUrl)
+        
+        var downloadResources = self.downloadResources[resourceUrl]
+        
+        if let data = downloadResources?.requestTask?.resumeData{
+            downloadResources!.requestTask = Alamofire.download(resumingWith: data, to: destination)
+            downloadResources?.status = .downloading
         }else {
-            
-            downloadRequst = Alamofire.download(resourceUrl, to: destination).validate(statusCode: 200..<400).response { (response) in
+           let downloadRequst = Alamofire.download(resourceUrl, to: destination).validate(statusCode: 200..<400).response { (response) in
                 
                 if response.error == nil, let localPath = response.destinationURL?.path {
+                    downloadResources?.status = .downloaded
                     completionHandler(DownloadResult.success(localPath))
                 } else {
+                    downloadResources?.status = .failure
                     completionHandler(DownloadResult.failureUrl(response.error!, response.destinationURL?.path))
                 }
             }
-            
+            downloadResources = DownloadResource(status: .downloading, url: resourceUrl, requestTask: downloadRequst)
+            self.downloadResources[resourceUrl] = downloadResources!
         }
-        self.downloadingURLS[resourceUrl] = downloadRequst!
         guard  progress != nil  else {
             return
         }
-        
-        downloadRequst?.downloadProgress(queue: DispatchQueue.main, closure: { (_progress) in
-            progress!(resourceUrl,_progress)
+        downloadResources!.requestTask?.downloadProgress(queue: DispatchQueue.main, closure: { (_progress) in
+            progress!(downloadResources!,_progress)
         })
     }
     func isFileExisted(url: URL, prePath: String? = nil) -> URL? {

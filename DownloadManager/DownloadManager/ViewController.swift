@@ -25,7 +25,7 @@ class ViewController: UITableViewController {
     }
     
     @IBAction func cleanCache(_ sender: Any) {
-        DownloadCache.cleanDownloadFiles()
+        DownloadManager.cleanAllDownloadFiles()
     }
     
     override func didReceiveMemoryWarning() {
@@ -52,7 +52,7 @@ class ViewController: UITableViewController {
         switch statues {
         case .downloading:
          DownloadManager.cancelDownload(model.URL.first!)
-        case .cancle,.beginDownload:
+        case .cancel,.beginDownload,.unknow:
             DownloadManager.default.downloadResource(resourcePath: model.URL.first, progress: { (_,progress) in
                 cell.progress.text = String(format: "%.2f",progress.fractionCompleted * 100)
             }) { (result) -> (Void) in

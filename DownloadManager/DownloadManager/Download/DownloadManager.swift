@@ -198,7 +198,7 @@ public class DownloadManager: NSObject {
     
     func judgeIfClearCache() {
         if Int(DownloadCache.downloadedFilesSize() / 1000 / 1024) > maxCacheSize {
-            DownloadCache.cleanDownloadFiles()
+            DownloadManager.cleanAllDownloadFiles()
         }
     }
 }

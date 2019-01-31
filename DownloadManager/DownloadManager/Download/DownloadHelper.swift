@@ -1,8 +1,5 @@
 //
 //  DownloadHelper.swift
-//  alo7-student
-//
-//  Copyright © 2017年 alo7. All rights reserved.
 //
 
 import UIKit
@@ -11,7 +8,7 @@ import UIKit
 
 let FileErrorDomain = "FileErrorDomain"
 
-// MARK:-  result help
+// MARK: - result help
 
 public enum DownloadResult<T> {
     case failure(Error)
@@ -19,47 +16,65 @@ public enum DownloadResult<T> {
     case failureUrl(Error, String?)
 }
 
-enum FileError: Int {
-    
+public enum FileError: Int {
+
     case badURL = 9981
     case fileIsExist = 9982
     case fileInfoError = 9983
-    case invalidStatusCode = 9984
+    case invalidStatus = 9984
     case diskOutOfSpace = 9985
     case downloadCanceled = -999
-    
+
+    func error() -> Error {
+        var errMsg = ""
+        switch self {
+        case .badURL:
+            errMsg = "badURL"
+        case .fileIsExist:
+            errMsg = "fileIsExist"
+        case .fileInfoError:
+            errMsg = "fileInfoError"
+        case .invalidStatus:
+            errMsg = "invalidStatus"
+        case .diskOutOfSpace:
+            errMsg = "diskOutOfSpace"
+        case .downloadCanceled:
+            errMsg = "downloadCanceled"
+        }
+
+        let error = NSError(domain: FileErrorDomain, code: self.rawValue, userInfo: [ "errMsg" : errMsg])
+        return error as Error
+    }
 }
 
 protocol FileURL {
-    
+
     func asURL() throws -> URL
 }
 
 extension String: FileURL {
-    
+
     func asURL() throws -> URL {
-        guard let url = URL(string: self) else { throw    NSError(domain: FileErrorDomain, code: FileError.badURL.rawValue, userInfo: ["url":self]) }
+        guard let url = URL(string: self) else { throw    NSError(domain: FileErrorDomain, code: FileError.badURL.rawValue, userInfo: ["url": self]) }
         return url
     }
-    
-    
+
     var url: URL {
-        
+
         return URL(fileURLWithPath: self)
     }
 }
 
 extension URL: FileURL {
     func asURL() throws -> URL {
-        
+
         return self
-        
+
     }
 }
 
 extension DispatchQueue {
-    
-    static let downloadQueue = DispatchQueue(label: "DownloadFileQueue",attributes: .concurrent)
-    
-}
 
+    static let downloadQueue = DispatchQueue(label: "DownloadFileQueue", attributes: .concurrent)
+
+}

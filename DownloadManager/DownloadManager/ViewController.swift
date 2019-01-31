@@ -9,12 +9,12 @@
 import UIKit
 import Alamofire
 struct Model {
-    var title:String?
-    var URL:String?
-    var progress = 0.0
+    var title:String
+    var URL:[String]
+    
 }
 class ViewController: UITableViewController {
-    var dataSource = [Model(title: "音乐", URL: "http://sc1.111ttt.cn:8282/2017/1/11m/11/304112002347.m4a?#.mp3", progress: 0),Model(title: "视频", URL: "https://www.apple.com/105/media/us/iphone-x/2017/01df5b43-28e4-4848-bf20-490c34a926a7/films/feature/iphone-x-feature-tpl-cc-us-20170912_1280x720h.mp4", progress: 0),Model(title: "文件", URL: "", progress: 0)]
+    var dataSource = [Model(title: "音乐", URL: ["http://sc1.111ttt.cn:8282/2017/1/11m/11/304112002347.m4a?#.mp3"]),Model(title: "视频", URL: ["https://www.apple.com/105/media/us/iphone-x/2017/01df5b43-28e4-4848-bf20-490c34a926a7/films/feature/iphone-x-feature-tpl-cc-us-20170912_1280x720h.mp4"]),Model(title: "asyncDownload", URL: ["http://sc1.111ttt.cn:8282/2017/1/11m/11/304112002347.m4a?#.mp3","https://www.apple.com/105/media/us/iphone-x/2017/01df5b43-28e4-4848-bf20-490c34a926a7/films/feature/iphone-x-feature-tpl-cc-us-20170912_1280x720h.mp4"])]
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
@@ -25,7 +25,7 @@ class ViewController: UITableViewController {
     }
     
     @IBAction func cleanCache(_ sender: Any) {
-        DownloadCache.cleanDownloadFiles()
+        DownloadManager.cleanAllDownloadFiles()
     }
     
     override func didReceiveMemoryWarning() {
@@ -48,18 +48,31 @@ class ViewController: UITableViewController {
         
         let model = self.dataSource[indexPath.row]
         let cell = tableView.cellForRow(at: indexPath) as! TableViewCell
-        DownloadManager.default.downloadResource(resourcePath: model.URL!, progress: { (progress) in
-            cell.progress.text = String(format: "%.2f",progress.fractionCompleted * 100)
-        }) { (result) -> (Void) in
-            switch result{
-            case .success(let a):
-                print(a)
-            case.failure(let error):
-                print(error)
-            case.failureUrl(let error, let url):
-                print(error,url)
+        let statues = DownloadManager.resourceDownloadStatus(url: model.URL.first!)
+        switch statues {
+        case .downloading:
+         DownloadManager.cancelDownload(model.URL.first!)
+        case .cancel,.beginDownload,.unknow:
+            DownloadManager.default.downloadResource(resourcePath: model.URL.first, progress: { (_,progress) in
+                cell.progress.text = String(format: "%.2f",progress.fractionCompleted * 100)
+            }) { (result) -> (Void) in
+                switch result{
+                case .success(let a):
+                    print(a)
+                case.failure(let error):
+                    print(error)
+                case.failureUrl(let error, let url):
+                    print(error,url ?? "")
+                }
             }
+        case .downloaded:
+            break
+        case .failure:
+            break
         }
+        
+      
     }
+
 }
 

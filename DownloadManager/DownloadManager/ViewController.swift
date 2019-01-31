@@ -62,12 +62,10 @@ class ViewController: UITableViewController {
                 case.failure(let error):
                     print(error)
                 case.failureUrl(let error, let url):
-                    print(error,url)
+                    print(error,url ?? "")
                 }
             }
         case .downloaded:
-            break
-        case .unknow:
             break
         case .failure:
             break
